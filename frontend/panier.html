@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Panier – Sen Légumes</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    .item { margin-bottom: 1rem; border: 1px solid #ccc; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>🛒 Mon Panier</h1>
+  <div id="panier"></div>
+
+  <h2>Total : <span id="total">0</span> €</h2>
+  <button onclick="viderPanier()">🗑️ Vider le panier</button>
+
+  <button onclick="genererFacture()">🧾 Générer ma facture PDF</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+  <script src="panier.js">const panier = JSON.parse(localStorage.getItem("panier") || "[]");
+</script>
+</body>
+</html>

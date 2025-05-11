@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Détails du Produit</title>
+  <link rel="stylesheet" href="style.css" />
+   <script src="script.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Détails du Produit</h1>
+  </header>
+  <main class="container">
+    <article id="productDetail"></article>
+    <a href="index.html" class="back-button">⬅ Retour</a>
+  </main>
+  <footer>
+    <p>&copy; 2025 Mon Site Bio</p>
+  </footer>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name");
+    const price = params.get("price");
+    const image = params.get("image");
+
+    const detail = document.getElementById("productDetail");
+
+    if (name && price && image) {
+      detail.innerHTML = `
+        <img src="${image}" alt="Image de ${name}" style="max-width: 100%; border-radius: 0.5rem;">
+        <h2>${name}</h2>
+        <p><strong>Prix :</strong> ${price} € / Kg</p>
+      `;
+    } else {
+      detail.innerHTML = "<p>Produit introuvable</p>";
+    }
+  </script>
+</body>
+</html>

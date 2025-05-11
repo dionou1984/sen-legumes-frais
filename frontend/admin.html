@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Sen Légumes Frais</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 2rem; }
+    input, button, textarea {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 10px;
+    }
+    #form-add, #products-list { display: none; margin-top: 2rem; }
+    .product-item { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; }
+    .actions { margin-top: 0.5rem; display: flex; gap: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>🔐 Connexion Admin</h1>
+
+  <form id="login-form">
+    <input type="email" id="email" placeholder="Email admin" required />
+    <input type="password" id="password" placeholder="Mot de passe" required />
+    <button type="submit">Se connecter</button>
+  </form>
+
+  <div id="login-status"></div>
+
+  <form id="form-add">
+    <h2>➕ Ajouter ou modifier un produit</h2>
+    <input type="hidden" id="product-id" />
+    <input type="text" id="nom" placeholder="Nom du produit" required />
+    <input type="number" id="prix" placeholder="Prix (€)" step="0.01" required />
+    <button type="submit">💾 Enregistrer</button>
+    <button type="button" onclick="resetForm()">❌ Annuler</button>
+  </form>
+
+  <section id="products-list">
+    <h2>📦 Liste des produits</h2>
+	<div style="margin: 1rem 0;">
+  <button onclick="exportCSV()">📄 Exporter en CSV</button>
+  <button onclick="window.print()">🖨️ Imprimer la liste</button>
+</div>
+
+    <div id="list"></div>
+  </section>
+
+  <script>
+    let jwt = '';
+    const apiURL = "https://sen-legumes-cms.up.railway.app/api/produits";
+
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch("https://sen-legumes-cms.up.railway.app/api/auth/local", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email, password })
+      });
+
+      const data = await res.json();
+      if (data.jwt) {
+        jwt = data.jwt;
+        document.getElementById("login-status").innerText = "✅ Connecté";
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("form-add").style.display = "block";
+        document.getElementById("products-list").style.display = "block";
+        loadProducts();
+      } else {
+        document.getElementById("login-status").innerText = "❌ Connexion échouée";
+      }
+    });
+
+    document.getElementById("form-add").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const id = document.getElementById("product-id").value;
+      const nom = document.getElementById("nom").value;
+      const prix = parseFloat(document.getElementById("prix").value);
+      const method = id ? "PUT" : "POST";
+      const endpoint = id ? `${apiURL}/${id}` : apiURL;
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${jwt}`
+        },
+        body: JSON.stringify({ data: { nom, prix } })
+      });
+
+      const result = await res.json();
+      alert("✅ Produit sauvegardé : " + result.data?.attributes?.nom || "ok");
+      resetForm();
+      loadProducts();
+    });
+
+    async function loadProducts() {
+      const res = await fetch(apiURL, {
+        headers: {
+          "Authorization": `Bearer ${jwt}`
+        }
+      });
+      const data = await res.json();
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      data.data.forEach((p) => {
+        const item = document.createElement("div");
+        item.className = "product-item";
+        item.innerHTML = `
+          <strong>${p.attributes.nom}</strong> – ${p.attributes.prix} €
+          <div class="actions">
+            <button onclick="editProduct(${p.id}, '${p.attributes.nom}', ${p.attributes.prix})">✏️ Modifier</button>
+            <button onclick="deleteProduct(${p.id})">🗑️ Supprimer</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function editProduct(id, nom, prix) {
+      document.getElementById("product-id").value = id;
+      document.getElementById("nom").value = nom;
+      document.getElementById("prix").value = prix;
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm("Supprimer ce produit ?")) return;
+      await fetch(`${apiURL}/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${jwt}` }
+      });
+      loadProducts();
+    }
+
+    function resetForm() {
+      document.getElementById("product-id").value = "";
+      document.getElementById("nom").value = "";
+      document.getElementById("prix").value = "";
+    }
+  </script>
+</body>
+</html>

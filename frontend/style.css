@@ -1,0 +1,33 @@
+body {
+  font-family: sans-serif;
+  background: #f3f3f3;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: #006400;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+#product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.product {
+  background: white;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  width: calc(33.333% - 2rem);
+}
+
+@media (max-width: 768px) {
+  .product {
+    width: 100%;
+  }
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Tomates",
+    "price": 2.5,
+    "image": "https://images.unsplash.com/photo-1571689936046-d6a3ce40b30c"
+  },
+  {
+    "name": "Pommes",
+    "price": 3.2,
+    "image": "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce"
+  },
+  {
+    "name": "Carottes",
+    "price": 1.8,
+    "image": "https://images.unsplash.com/photo-1582515073490-39981397c445"
+  }
+]
+

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Valider ma commande – Sen Légumes</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
+    .item { margin-bottom: 1rem; border: 1px solid #ccc; padding: 1rem; }
+    input, textarea, button { width: 100%; margin: 0.5rem 0; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>🧾 Valider ma commande</h1>
+
+  <div id="panier"></div>
+  <h3>Total : <span id="total">0</span> €</h3>
+
+  <form id="commande-form">
+    <input name="nom" placeholder="Votre nom" required />
+    <input name="email" type="email" placeholder="Votre email" required />
+    <input name="telephone" type="tel" placeholder="Téléphone WhatsApp" required />
+    <textarea name="message" placeholder="Instructions de livraison" required></textarea>
+    <button type="submit">📦 Passer ma commande</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    emailjs.init("deGPQSg0Eyc0lz0HR");
+
+    const panier = JSON.parse(localStorage.getItem("panier") || "[]");
+    const listEl = document.getElementById("panier");
+    let total = 0;
+
+    panier.forEach(p => {
+      total += p.qte * p.prix;
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerHTML = `<strong>${p.nom}</strong> – ${p.qte} x ${p.prix.toFixed(2)} €`;
+      listEl.appendChild(el);
+    });
+
+    document.getElementById("total").innerText = total.toFixed(2);
+
+    document.getElementById("commande-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const nom = form.nom.value;
+      const email = form.email.value;
+      const tel = form.telephone.value;
+      const messageClient = form.message.value;
+
+      const details = panier.map(p => `${p.qte}x ${p.nom} (${(p.qte * p.prix).toFixed(2)}€)`).join("\n");
+      const finalMessage = `🧾 Nouvelle commande de ${nom} (${email}):\n\n${details}\n\nTotal: ${total.toFixed(2)}€\n\n📬 Message: ${messageClient}`;
+
+      // WhatsApp via backend
+      try {
+        await axios.post("https://sen-legumes-cms.up.railway.app/api/send-message", {
+          name: nom,
+          email,
+          message: finalMessage
+        });
+      } catch (err) {
+        console.error("WhatsApp error", err.message);
+      }
+
+      // Email via EmailJS
+      emailjs.send("service_7dqemrc", "template_xfa8yyl", {
+        from_name: nom,
+        reply_to: email,
+        message: finalMessage
+      }).then(() => {
+        document.getElementById("status").innerText = "✅ Commande envoyée ! Merci.";
+        localStorage.removeItem("panier");
+        form.reset();
+      }).catch(err => {
+        console.error("EmailJS error", err);
+        document.getElementById("status").innerText = "❌ Erreur d'envoi.";
+      });
+    });
+  </script>
+</body>
+</html>
