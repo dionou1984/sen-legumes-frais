@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nos produits – Sen Légumes Frais</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f5f5f5; }
+    .grid { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .product {
+      background: white;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      width: calc(33.333% - 2rem);
+      box-sizing: border-box;
+    }
+    .product button {
+      background: #28a745;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      margin-top: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .product button:hover {
+      background: #218838;
+    }
+    @media (max-width: 768px) {
+      .product {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🥬 Nos produits disponibles</h1>
+  <div id="product-list" class="grid"></div>
+
+  <script>
+    const API_URL = "https://sen-legumes-cms.up.railway.app/api/produits";
+    const panierKey = "panier";
+
+    async function chargerProduits() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        const produits = data.data.map(p => ({
+          nom: p.attributes.nom,
+          prix: p.attributes.prix
+        }));
+        afficherProduits(produits);
+      } catch (err) {
+        console.error("❌ Erreur API Strapi, fallback JSON local.");
+        chargerDepuisJSON();
+      }
+    }
+
+    function afficherProduits(produits) {
+      const container = document.getElementById("product-list");
+      container.innerHTML = "";
+      produits.forEach(p => {
+        const el = document.createElement("div");
+        el.className = "product";
+        el.innerHTML = `
+          <h3>${p.nom}</h3>
+          <p>${p.prix.toFixed(2)} €</p>
+          <button onclick="ajouterAuPanier('${p.nom}', ${p.prix})">🛒 Ajouter au panier</button>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    function ajouterAuPanier(nom, prix) {
+      const panier = JSON.parse(localStorage.getItem(panierKey) || "[]");
+      const index = panier.findIndex(p => p.nom === nom);
+
+      if (index >= 0) {
+        panier[index].qte += 1;
+      } else {
+        panier.push({ nom, prix, qte: 1 });
+      }
+
+      localStorage.setItem(panierKey, JSON.stringify(panier));
+      alert(`${nom} ajouté au panier`);
+    }
+
+    async function chargerDepuisJSON() {
+      const res = await fetch("products.json");
+      const produits = await res.json();
+      afficherProduits(produits);
+    }
+
+    chargerProduits();
+  </script>
+
+</body>
+</html>
